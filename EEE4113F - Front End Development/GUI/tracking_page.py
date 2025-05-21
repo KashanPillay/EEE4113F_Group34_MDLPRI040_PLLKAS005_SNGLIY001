@@ -1,9 +1,24 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+                             QPushButton, QSizePolicy)
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
-from PyQt5.QtCore import QUrl, pyqtSignal, Qt
+from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QPoint
+from PyQt5.QtGui import QFont, QColor, QLinearGradient, QPainter, QBrush
 from threading import Thread
 import time
 import sheets_retrieve
+
+class PastelHeader(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedHeight(80)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        gradient = QLinearGradient(QPoint(0, 0), QPoint(self.width(), 0))
+        gradient.setColorAt(0, QColor("#f8bbd0"))  # Soft pink
+        gradient.setColorAt(1, QColor("#bbdefb"))  # Soft blue
+        painter.fillRect(self.rect(), QBrush(gradient))
+        painter.end()
 
 class TrackingPage(QWidget):
     map_update_signal = pyqtSignal(str)
@@ -16,11 +31,49 @@ class TrackingPage(QWidget):
         self.start_coordinate_updates()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        # Add pastel header (matches your other pages)
+        header = PastelHeader()
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(40, 0, 40, 0)
+
+        title_label = QLabel("LIVE LOCATION TRACKING")
+        title_label.setFont(QFont("Segoe UI", 18, QFont.Bold))
+        title_label.setStyleSheet("color: #5d5d5d;")
+        header_layout.addWidget(title_label, alignment=Qt.AlignLeft)
+
+        header_layout.addStretch()
+
+        # Home button (consistent with your other pages)
+        if self.navigate_to_home:
+            home_btn = QPushButton("← Home")
+            home_btn.setStyleSheet("""
+                QPushButton {
+                    background: #81d4fa;
+                    color: #2d2d2d;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 8px 16px;
+                    font-size: 13px;
+                    font-weight: 600;
+                }
+                QPushButton:hover {
+                    background: #4fc3f7;
+                }
+            """)
+            home_btn.clicked.connect(self.navigate_to_home)
+            header_layout.addWidget(home_btn, alignment=Qt.AlignRight)
+
+        main_layout.addWidget(header)
+
+        # Map view (takes remaining space)
         self.map_view = QWebEngineView()
+        self.map_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.configure_map()
-        layout.addWidget(self.map_view)
-        self.setLayout(layout)
+        main_layout.addWidget(self.map_view)
 
     def configure_map(self):
         settings = self.map_view.settings()
@@ -48,5 +101,3 @@ class TrackingPage(QWidget):
             self.map_view.setUrl(QUrl(maps_url))
         except Exception as e:
             print(f"Map update error: {e}")
-
-

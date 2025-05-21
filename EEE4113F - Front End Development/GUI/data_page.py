@@ -127,6 +127,20 @@ class DataPage(QWidget):
             QCalendarWidget QAbstractItemView:item:hover {
                 background-color: #e0e0e0;
             }
+            QMessageBox {
+             background-color: #f8f9fa;  /* Light background */
+            }
+            QMessageBox QLabel {
+             color: #d32f2f;  /* Red color for text */
+                font-size: 14px;
+             }
+            QMessageBox QPushButton {
+                background-color: #81d4fa;
+                color: #2d2d2d;
+                border-radius: 4px;
+                padding: 5px 10px;
+            }
+
         """)
 
         layout = QVBoxLayout(self)

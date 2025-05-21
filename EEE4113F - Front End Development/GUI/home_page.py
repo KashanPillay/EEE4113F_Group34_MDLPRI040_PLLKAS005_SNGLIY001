@@ -106,7 +106,7 @@ class HomePage(QWidget):
         hero_image_layout.setContentsMargins(10, 10, 10, 10)
 
         hero_image = QLabel()
-        hero_pixmap = QPixmap("assets/her_image.png").scaled(320, 220, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        hero_pixmap = QPixmap("assets/her_image.png").scaled(320, 320, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         hero_image.setPixmap(hero_pixmap)
         hero_image.setAlignment(Qt.AlignCenter)
         hero_image_layout.addWidget(hero_image)
@@ -181,8 +181,8 @@ class HomePage(QWidget):
         features = [
             ("Real-Time Monitoring", "assets/realtime_icon.png",
              "Gentle, continuous updates with smooth data visualization", "#e1f5fe"),
-            ("Smart Alerts", "assets/alert_icon.png",
-             "Discreet notifications for abnormal readings", "#ffebee"),
+            ("Easy-To-Use Interface", "assets/easy_icon.png",
+             "User friendly access to key features.", "#ffebee"),
             ("GPS Tracking", "assets/gps_icon.png",
              "Soft location tracking with privacy focus", "#e8f5e9"),
             ("Data History", "assets/history_icon.png",
@@ -211,7 +211,7 @@ class HomePage(QWidget):
                     padding: 10px;
                 }
             """)
-            icon_container.setFixedSize(60, 60)
+            icon_container.setFixedSize(80, 80)
             icon_layout = QVBoxLayout(icon_container)
             icon_layout.setContentsMargins(0, 0, 0, 0)
 
