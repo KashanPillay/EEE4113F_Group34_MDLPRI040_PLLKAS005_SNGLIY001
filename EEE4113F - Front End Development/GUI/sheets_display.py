@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Connected Oxygen Detection Yield (CODY)")
         self.setWindowIcon(QIcon("assets/icon.png"))
-        self.setFixedSize(800, 600)
+        self.resize(800, 600)
 
         # Initialize stacked widget
         self.stackedWidget = QStackedWidget(self)
@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
 
     def init_pages(self):
         # Create pages with navigation callbacks
-        self.home_page = HomePage(self.show_data_page)
+        self.home_page = HomePage(self.show_data_page, self.show_tracking_page)
         self.data_page = DataPage(self.show_home_page)
         self.tracking_page = TrackingPage(self.show_home_page)
 
@@ -71,7 +71,6 @@ class MainWindow(QMainWindow):
         self.stackedWidget.setCurrentWidget(self.home_page)
 
     def show_data_page(self):
-        self.data_page.load_data()
         self.stackedWidget.setCurrentWidget(self.data_page)
 
     def show_tracking_page(self):

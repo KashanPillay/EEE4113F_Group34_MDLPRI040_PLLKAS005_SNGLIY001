@@ -9,7 +9,7 @@ from PyQt5.QtCore import Qt, QSize, QPoint
 class PastelHeader(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedHeight(100)
+        self.setFixedHeight(80)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -40,9 +40,10 @@ class ModernCard(QFrame):
 
 
 class HomePage(QWidget):
-    def __init__(self, navigate_to_data_page):
+    def __init__(self, navigate_to_data_page, navigate_to_tracking_page):
         super().__init__()
         self.navigate_to_data_page = navigate_to_data_page
+        self.navigate_to_tracking_page = navigate_to_tracking_page
         self.load_fonts()
         self.init_ui()
 
@@ -62,21 +63,15 @@ class HomePage(QWidget):
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(40, 0, 40, 0)
 
-        # Logo with softer appearance
-        logo_label = QLabel()
-        logo_pixmap = QPixmap("assets/bl_logo.png").scaled(120, 60, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        logo_label.setPixmap(logo_pixmap)
-        header_layout.addWidget(logo_label, alignment=Qt.AlignLeft)
-
         # Title with modern font
+
         title_label = QLabel("CODY - Remote Pulse Oximeter")
-        title_label.setFont(QFont("Montserrat SemiBold", 16))
+        title_label.setFont(QFont("Segoe UI", 18, QFont.Bold))
         title_label.setStyleSheet("color: #5d5d5d;")
-        header_layout.addWidget(title_label, alignment=Qt.AlignCenter)
+        header_layout.addWidget(title_label, alignment=Qt.AlignLeft)
 
         # Right spacer to balance layout
         header_layout.addStretch()
-
         main_layout.addWidget(header)
 
         # Scroll area for content
@@ -128,7 +123,7 @@ class HomePage(QWidget):
         hero_text.setWordWrap(True)
 
         # Get Started Button with soft color
-        get_started_btn = QPushButton("View Patient Data")
+        get_started_btn = QPushButton("CHECK my Penguin")
         get_started_btn.setStyleSheet("""
             QPushButton {
                 background: #81d4fa;
@@ -147,10 +142,32 @@ class HomePage(QWidget):
         get_started_btn.setCursor(Qt.PointingHandCursor)
         get_started_btn.clicked.connect(self.navigate_to_data_page)
 
+        get_started_btn2 = QPushButton("TRACK my Penguin")
+        get_started_btn2.setStyleSheet("""
+            QPushButton {
+                background: #81d4fa;
+                color: #2d2d2d;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-family: 'Montserrat SemiBold';
+                min-width: 180px;
+            }
+            QPushButton:hover {
+                background: #4fc3f7;
+            }
+        """)
+        get_started_btn2.setCursor(Qt.PointingHandCursor)
+        get_started_btn2.clicked.connect(self.navigate_to_tracking_page)
+
+
+
         hero_text_layout = QVBoxLayout()
         hero_text_layout.setSpacing(25)
         hero_text_layout.addWidget(hero_text)
         hero_text_layout.addWidget(get_started_btn, alignment=Qt.AlignLeft)
+        hero_text_layout.addWidget(get_started_btn2, alignment=Qt.AlignLeft)
         hero_text_layout.addStretch()
         hero_layout.addLayout(hero_text_layout)
 
