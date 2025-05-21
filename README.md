@@ -21,12 +21,12 @@ Documentation and system diagrams.
 
 - Roles and Contributions:
 
-  Liyana Singh (SNGLIY001) – Circuit Design
+  Liyana Singh (SNGLIY001) – Subsystem 1 - Circuit Design
   Designed and implemented the analog front-end circuitry for the IR sensor.
 
-  Priya Moodley (MDLPRI040) – Microcontroller, GPS, and Signal Processing
+  Priya Moodley (MDLPRI040) – Subsystem 2 - Microcontroller, GPS, and Signal Processing
   Programmed the ESP32 microcontroller for data acquisition. Integrated GPS module for coordinate tracking. Applied signal processing techniques for clean, interpretable oximetry and     pulse data. Developed the power management system. 
 
-  Kashan Pillay (PLLKAS005) – Front-End Development, Data Analysis, and Housing Design
+  Kashan Pillay (PLLKAS005) – Subsystem 3 - Front-End Development, Data Analysis, and Housing Design
   Built a PyQt5 GUI for data visualization and system interaction. Developed tools for logging and analyzing collected data. Designed and 3D printed the custom housing suitable for       penguin use.
 
