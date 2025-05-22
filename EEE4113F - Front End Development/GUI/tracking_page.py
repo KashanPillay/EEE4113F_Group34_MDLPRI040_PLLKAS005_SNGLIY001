@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QSizePolicy)
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
-from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QPoint
+from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QPoint, QTimer
 from PyQt5.QtGui import QFont, QColor, QLinearGradient, QPainter, QBrush
 from threading import Thread
 import time
@@ -20,6 +20,7 @@ class PastelHeader(QWidget):
         painter.fillRect(self.rect(), QBrush(gradient))
         painter.end()
 
+
 class TrackingPage(QWidget):
     map_update_signal = pyqtSignal(str)
 
@@ -27,8 +28,10 @@ class TrackingPage(QWidget):
         super().__init__()
         self.navigate_to_home = navigate_to_home
         self.coordinates = "0,0"
+        self.tracked_coordinates = "0,0"  # Store the original tracking coordinates
         self.init_ui()
         self.start_coordinate_updates()
+        self.reset_timer = None  # Timer for resetting view
 
     def init_ui(self):
         main_layout = QVBoxLayout(self)
@@ -85,19 +88,87 @@ class TrackingPage(QWidget):
     def start_coordinate_updates(self):
         self.update_thread = Thread(target=self.update_coordinates, daemon=True)
         self.update_thread.start()
+        # Add timer to reset view every 10 seconds
+        self.reset_timer = QTimer()
+        self.reset_timer.timeout.connect(self.reset_map_view)
+        self.reset_timer.start(1000)  # 10 seconds
 
     def update_coordinates(self):
         while True:
             new_coords = sheets_retrieve.get_coordinates()
-            if new_coords and new_coords != self.coordinates:
-                self.coordinates = new_coords
-                self.map_update_signal.emit(new_coords)
+            if new_coords:
+                self.tracked_coordinates = new_coords  # Update tracked coordinates
+                if new_coords != self.coordinates:
+                    self.coordinates = new_coords
+                    self.map_update_signal.emit(new_coords)
             time.sleep(5)
+
+    def reset_map_view(self):
+        """Force the map back to tracked coordinates"""
+        if self.tracked_coordinates and self.tracked_coordinates != "0,0":
+            self.map_update_signal.emit(self.tracked_coordinates)
 
     def update_map(self, coords):
         try:
-            lat, lon = coords.strip().replace(" ", "").split(",")
-            maps_url = f"https://www.google.com/maps?q={lat},{lon}&z=15"
-            self.map_view.setUrl(QUrl(maps_url))
+            # Store previous coordinates if they don't exist
+            if not hasattr(self, 'previous_coords'):
+                self.previous_coords = None
+
+            # Process new coordinates
+            new_coords = coords.strip().replace(" ", "")
+
+            # Only update if coordinates have changed
+            if new_coords != self.previous_coords:
+                self.previous_coords = new_coords
+                lat, lon = new_coords.split(",")
+
+                # Create the HTML with embedded iframe
+                html = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body, html {{
+                            margin: 0;
+                            padding: 0;
+                            height: 100%;
+                            overflow: hidden;
+                        }}
+                        #map-container {{
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                        }}
+                        #map-iframe {{
+                            width: 100%;
+                            height: 100%;
+                            border: none;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div id="map-container">
+                        <iframe id="map-iframe"
+                            src="https://maps.google.com/maps?q={lat},{lon}&z=15&output=embed"
+                            frameborder="0"
+                            sandbox="allow-scripts allow-same-origin">
+                        </iframe>
+                    </div>
+
+                    <script>
+                        // No automatic refresh needed anymore
+                        // Just prevent navigation attempts
+                        //window.onbeforeunload = function() {{
+                        //    return false;
+                        //}};
+                    </script>
+                </body>
+                </html>
+                """
+
+                self.map_view.setHtml(html, QUrl("about:blank"))
+
         except Exception as e:
             print(f"Map update error: {e}")
