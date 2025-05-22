@@ -104,11 +104,11 @@ class DataPage(QWidget):
 
             /* Calendar widget styling */
             QCalendarWidget QWidget {
-                background-color: white;
+                background-color: grey;
                 color: #333333;
             }
             QCalendarWidget QToolButton {
-                background-color: white;
+                background-color: grey;
                 color: #333333;
                 font-size: 12px;
             }
@@ -128,10 +128,10 @@ class DataPage(QWidget):
                 background-color: #e0e0e0;
             }
             QMessageBox {
-             background-color: #f8f9fa;  /* Light background */
+             background-color: #333333;  /* Light background */
             }
             QMessageBox QLabel {
-             color: #d32f2f;  /* Red color for text */
+             color: #fafafa;  /* Red color for text */
                 font-size: 14px;
              }
             QMessageBox QPushButton {
@@ -284,6 +284,27 @@ class DataPage(QWidget):
 
         content_layout.addWidget(self.graph_controls)
 
+        # Add Apply button
+        self.apply_btn = QPushButton("Apply Range")
+        self.apply_btn.setStyleSheet("""
+            QPushButton {
+                background: #81d4fa;
+                color: #2d2d2d;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 12px;
+                font-size: 12px;
+                font-weight: 600;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background: #4fc3f7;
+            }
+        """)
+        self.apply_btn.clicked.connect(self.update_graph)
+        controls_layout.addWidget(self.apply_btn)
+        self.apply_btn.setShortcut("Return")
+
         # Graph container
         self.graphContainer = GraphCard()
         self.graphContainer.hide()
@@ -296,7 +317,7 @@ class DataPage(QWidget):
         btn_layout.addStretch()
 
         # Refresh Button
-        refresh_btn = QPushButton("⟳ Refresh Data")
+        refresh_btn = QPushButton("Refresh Data")
         refresh_btn.setStyleSheet("""
             QPushButton {
                 background: #81d4fa;
@@ -319,7 +340,7 @@ class DataPage(QWidget):
         refresh_btn.clicked.connect(self.load_data)
 
         # Graph Button
-        graph_btn = QPushButton("📈 Show RoR Graph")
+        graph_btn = QPushButton("Show Oxygen Saturation Graph")
         graph_btn.setStyleSheet("""
             QPushButton {
                 background: #ce93d8;
@@ -392,9 +413,9 @@ class DataPage(QWidget):
             self.graph_controls.hide()
         else:
             self.graph_controls.show()
-            self.plot_ror_graph()
+            # Force an update when showing the graph
+            self.update_graph()
             self.graphContainer.show()
-
     def filter_data_by_range(self):
         """Filter data based on selected time range"""
         if not self.all_data:
@@ -426,13 +447,28 @@ class DataPage(QWidget):
 
     def update_graph(self):
         """Update graph when range selection changes"""
-        if self.graphContainer.isVisible():
-            self.plot_ror_graph()
+        if not self.graphContainer.isVisible():
+            return
 
         # Show/hide custom date range controls
         show_custom = self.range_combo.currentText() == "Custom range"
         self.start_date.setVisible(show_custom)
         self.end_date.setVisible(show_custom)
+
+        # Only plot if not custom range or if custom range with valid dates
+        if not show_custom or (show_custom and self.validate_dates()):
+            self.plot_ror_graph()
+
+    def validate_dates(self):
+        """Validate that start date is before end date"""
+        start_dt = self.start_date.dateTime().toPyDateTime()
+        end_dt = self.end_date.dateTime().toPyDateTime()
+
+        if start_dt > end_dt:
+            QMessageBox.warning(self, "Invalid Range",
+                                "Start date must be before end date")
+            return False
+        return True
 
     def plot_ror_graph(self):
         """Plot the RoR graph with current filters"""
@@ -461,7 +497,7 @@ class DataPage(QWidget):
                     markerfacecolor='white', markeredgewidth=1.5)
 
             # Format plot with better readability
-            ax.set_title('RoR Trend: y = 110 - 25(RoR)',
+            ax.set_title('',
                          color='#5d5d5d', pad=20, fontsize=12)
             ax.set_xlabel('Date & Time', color='#5d5d5d', fontsize=10)
             ax.set_ylabel('Oxygen Saturation', color='#5d5d5d', fontsize=10)
@@ -554,8 +590,76 @@ class DataPage(QWidget):
             ror = ratio1 / ratio2 if ratio2 != 0 else 0
             y_value = 110 - 25 * ror
             y_display = f"{y_value:.1f}"  # Format to 1 decimal place
+
+            # Check if oxygen saturation is below 90
+            if y_value < 90:
+                # Show warning message (only if not already shown for this low value)
+                if not hasattr(self, '_low_spo2_warning_shown') or not self._low_spo2_warning_shown:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Warning)
+                    msg.setText("Warning: Oxygen Saturation is Low!")
+                    msg.setInformativeText(f"Oxygen saturation is {y_display}% (below 90%). Please check the patient.")
+                    msg.setWindowTitle("Low Oxygen Warning")
+                    msg.setStandardButtons(QMessageBox.Ok)
+                    msg.setStyleSheet("""
+                        QMessageBox {
+                            background-color: #333333;
+                        }
+                        QMessageBox QLabel {
+                            color: #ffeb3b;
+                            font-size: 14px;
+                        }
+                        QMessageBox QPushButton {
+                            background-color: #81d4fa;
+                            color: #2d2d2d;
+                            border-radius: 4px;
+                            padding: 5px 10px;
+                        }
+                    """)
+                    msg.exec_()
+                    self._low_spo2_warning_shown = True
+
+                # Change SpO2 label to red warning style
+                self.spo2_label.setStyleSheet(f"""
+                    QLabel {{
+                        font-size: 16px;
+                        font-weight: 600;
+                        padding: 20px;
+                        border-radius: 12px;
+                        color: white;
+                        min-width: 200px;
+                        background: #f44336;
+                    }}
+                """)
+            else:
+                # Reset to normal style if above 90
+                self.spo2_label.setStyleSheet(f"""
+                    QLabel {{
+                        font-size: 16px;
+                        font-weight: 600;
+                        padding: 20px;
+                        border-radius: 12px;
+                        color: #5d5d5d;
+                        min-width: 200px;
+                        background: #e8f5e9;
+                    }}
+                """)
+                self._low_spo2_warning_shown = False
+
         except (ValueError, TypeError):
             y_display = "--"
+            # Reset to normal style if there's an error
+            self.spo2_label.setStyleSheet(f"""
+                QLabel {{
+                    font-size: 16px;
+                    font-weight: 600;
+                    padding: 20px;
+                    border-radius: 12px;
+                    color: #5d5d5d;
+                    min-width: 200px;
+                    background: #e8f5e9;
+                }}
+            """)
 
         self.heart_rate_label.setText(f"Heart Rate: <b>{hr}</b> bpm")
         self.spo2_label.setText(f"SpO2: <b>{spo2}</b> <b>{y_display}</b>%")

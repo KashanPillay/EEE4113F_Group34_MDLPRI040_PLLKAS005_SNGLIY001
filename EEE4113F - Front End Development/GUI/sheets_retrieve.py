@@ -36,8 +36,8 @@ def get_coordinates():
         client = gspread.authorize(creds)
 
         # Open the sheet and fetch coordinates from cell A1
-        sheet = client.open('kashan').sheet1
-        coordinates = sheet.acell('A1').value
+        sheet = client.open('test_data').sheet1
+        coordinates = sheet.acell('E2').value + ',' + sheet.acell('E3').value
         print(coordinates)
         return coordinates
     except Exception as e:

@@ -48,15 +48,15 @@ class MainWindow(QMainWindow):
 
         # View Menu
         view_menu = self.menubar.addMenu('View')
-        home_action = QAction('Home Page', self)
+        home_action = QAction('Home', self)
         home_action.triggered.connect(self.show_home_page)
         view_menu.addAction(home_action)
 
-        data_action = QAction('Data Page', self)
+        data_action = QAction('Vital Monitoring', self)
         data_action.triggered.connect(self.show_data_page)
         view_menu.addAction(data_action)
 
-        tracking_action = QAction('Tracking Page', self)
+        tracking_action = QAction('Tracking', self)
         tracking_action.triggered.connect(self.show_tracking_page)
         view_menu.addAction(tracking_action)
 
@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
 
     def show_about_info(self):
         QMessageBox.information(self, "About",
-                                "CODY - Remote Pulse Oximeter\nVersion 1.0\nMedical Monitoring System")
+                                "CODY - Remote Pulse Oximeter\nVersion 1.4\nKashan Pillay, Priya Moodley and Liyana Singh")
 
 
 if __name__ == "__main__":

@@ -114,10 +114,10 @@ class HomePage(QWidget):
 
         # Hero Text with modern typography
         hero_text = QLabel("""
-        <h2 style="color: #5d5d5d; margin-bottom: 20px; font-family: 'Montserrat SemiBold';">Monitor Vital Signs Remotely</h2>
+        <h2 style="color: #5d5d5d; margin-bottom: 20px; font-family: 'Montserrat SemiBold';">Monitor Vital Signs and Track Remotely</h2>
         <p style="color: #8e8e8e; font-size: 15px; line-height: 1.6; font-family: 'Montserrat';">
-        CODY provides gentle, continuous monitoring of heart rate and oxygen saturation (SpO₂),<br>
-        helping healthcare providers deliver compassionate care from anywhere.
+        CODY provides continuous monitoring of heart rate and oxygen saturation (SpO₂),<br>
+        helping specialists monitor their penguins from anywhere!.
         </p>
         """)
         hero_text.setWordWrap(True)
@@ -180,13 +180,13 @@ class HomePage(QWidget):
 
         features = [
             ("Real-Time Monitoring", "assets/realtime_icon.png",
-             "Gentle, continuous updates with smooth data visualization", "#e1f5fe"),
+             "Real time updates with smooth data visualization.", "#e1f5fe"),
             ("Easy-To-Use Interface", "assets/easy_icon.png",
              "User friendly access to key features.", "#ffebee"),
             ("GPS Tracking", "assets/gps_icon.png",
-             "Soft location tracking with privacy focus", "#e8f5e9"),
+             "Real time location tracking.", "#e8f5e9"),
             ("Data History", "assets/history_icon.png",
-             "Comprehensive trends with elegant reporting", "#f3e5f5")
+             "Comprehensive record keeping.", "#f3e5f5")
         ]
 
         features_frame = QFrame()
@@ -250,10 +250,10 @@ class HomePage(QWidget):
         steps_layout.addWidget(steps_title)
 
         steps = [
-            ("1. Gentle Setup", "Connect the comfortable pulse oximeter to the patient", "#e1f5fe"),
-            ("2. Peaceful Monitoring", "Vital signs are monitored with minimal disruption", "#ffebee"),
-            ("3. Intelligent Analysis", "Our algorithms gently detect important changes", "#e8f5e9"),
-            ("4. Caring Alerts", "Care team receives thoughtful notifications", "#f3e5f5")
+            ("1. Gentle Setup", "Connect the comfortable pulse oximeter to the penguin.", "#e1f5fe"),
+            ("2. Monitoring", "Vital signs are monitored with minimal disruption.", "#ffebee"),
+            ("3. Data Analysis", "Our algorithms detect important metrics and display them.", "#e8f5e9"),
+            ("4. Tracking", "See where in the colony your penguin is.", "#f3e5f5")
         ]
 
         for step_num, step_desc, step_color in steps:
@@ -290,11 +290,11 @@ class HomePage(QWidget):
         footer_layout = QHBoxLayout(footer)
         footer_layout.setContentsMargins(40, 20, 40, 20)
 
-        copyright = QLabel("© 2023 CODY Medical Systems")
+        copyright = QLabel("2025 EEE4113F Group 34")
         copyright.setStyleSheet("color: #5d5d5d; font-size: 12px; font-family: 'Montserrat';")
         footer_layout.addWidget(copyright)
 
-        version = QLabel("Compassionate Care v1.0")
+        version = QLabel("v1.5")
         version.setStyleSheet("color: #5d5d5d; font-size: 12px; font-family: 'Montserrat';")
         footer_layout.addWidget(version, alignment=Qt.AlignRight)
 
