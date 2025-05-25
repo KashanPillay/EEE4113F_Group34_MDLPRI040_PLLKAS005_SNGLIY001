@@ -38,7 +38,7 @@ class TrackingPage(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # Add pastel header (matches your other pages)
+        # Add pastel header
         header = PastelHeader()
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(40, 0, 40, 0)
@@ -50,7 +50,7 @@ class TrackingPage(QWidget):
 
         header_layout.addStretch()
 
-        # Home button (consistent with your other pages)
+        # Home button
         if self.navigate_to_home:
             home_btn = QPushButton("← Home")
             home_btn.setStyleSheet("""
@@ -72,7 +72,7 @@ class TrackingPage(QWidget):
 
         main_layout.addWidget(header)
 
-        # Map view (takes remaining space)
+        # Map view
         self.map_view = QWebEngineView()
         self.map_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.configure_map()

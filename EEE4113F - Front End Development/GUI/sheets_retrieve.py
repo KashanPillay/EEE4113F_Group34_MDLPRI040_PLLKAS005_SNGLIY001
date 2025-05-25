@@ -3,17 +3,17 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 def get_sheet_data():
     try:
-        # Define scope
+        #Define scope
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
-        # Load credentials
+        #Load credentials
         creds = ServiceAccountCredentials.from_json_keyfile_name('apd.json', scope)
         client = gspread.authorize(creds)
 
-        # Open the Google Sheet
+        #Open the Google Sheet
         sheet = client.open("test_data").sheet1
 
-        # Get all records
+        #Get all records
         data = sheet.get_all_records()
         return data
 
@@ -27,7 +27,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 def get_coordinates():
     try:
-        # Google Sheets API setup
+        #Google Sheets API setup
         scope = ['https://spreadsheets.google.com/feeds',
                  'https://www.googleapis.com/auth/spreadsheets',
                  'https://www.googleapis.com/auth/drive.file',
@@ -35,9 +35,9 @@ def get_coordinates():
         creds = ServiceAccountCredentials.from_json_keyfile_name('apd.json', scope)
         client = gspread.authorize(creds)
 
-        # Open the sheet and fetch coordinates from cell A1
+        #Open the sheet and fetch coordinates from cell A1
         sheet = client.open('test_data').sheet1
-        coordinates = sheet.acell('E2').value + ',' + sheet.acell('E3').value
+        coordinates = sheet.acell('F2').value + ',' + sheet.acell('F3').value
         print(coordinates)
         return coordinates
     except Exception as e:

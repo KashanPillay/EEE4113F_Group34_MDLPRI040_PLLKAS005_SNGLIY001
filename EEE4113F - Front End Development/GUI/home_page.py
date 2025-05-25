@@ -48,7 +48,7 @@ class HomePage(QWidget):
         self.init_ui()
 
     def load_fonts(self):
-        # Load modern fonts (you'll need to have these font files)
+        # Load modern fonts
         QFontDatabase.addApplicationFont("assets/fonts/Montserrat-Regular.ttf")
         QFontDatabase.addApplicationFont("assets/fonts/Montserrat-SemiBold.ttf")
 
@@ -64,13 +64,12 @@ class HomePage(QWidget):
         header_layout.setContentsMargins(40, 0, 40, 0)
 
         # Title with modern font
-
         title_label = QLabel("CODY - Remote Pulse Oximeter")
         title_label.setFont(QFont("Segoe UI", 18, QFont.Bold))
         title_label.setStyleSheet("color: #5d5d5d;")
         header_layout.addWidget(title_label, alignment=Qt.AlignLeft)
 
-        # Right spacer to balance layout
+        # Right spacer
         header_layout.addStretch()
         main_layout.addWidget(header)
 
@@ -85,14 +84,14 @@ class HomePage(QWidget):
         content_layout.setContentsMargins(40, 40, 40, 40)
         content_layout.setSpacing(30)
 
-        # 1. Hero Section with soft pastel card
+        #Section with soft pastel card
         hero_card = ModernCard()
         hero_card.setContentsMargins(0, 0, 0, 0)
         hero_layout = QHBoxLayout(hero_card)
         hero_layout.setContentsMargins(30, 30, 30, 30)
         hero_layout.setSpacing(40)
 
-        # Hero Image with soft rounded corners
+        #Image with soft rounded corners
         hero_image_container = QFrame()
         hero_image_container.setStyleSheet("""
             QFrame {
@@ -112,7 +111,7 @@ class HomePage(QWidget):
         hero_image_layout.addWidget(hero_image)
         hero_layout.addWidget(hero_image_container)
 
-        # Hero Text with modern typography
+        #Text
         hero_text = QLabel("""
         <h2 style="color: #5d5d5d; margin-bottom: 20px; font-family: 'Montserrat SemiBold';">Monitor Vital Signs and Track Remotely</h2>
         <p style="color: #8e8e8e; font-size: 15px; line-height: 1.6; font-family: 'Montserrat';">
@@ -122,7 +121,7 @@ class HomePage(QWidget):
         """)
         hero_text.setWordWrap(True)
 
-        # Get Started Button with soft color
+        #Button with soft color
         get_started_btn = QPushButton("CHECK my Penguin")
         get_started_btn.setStyleSheet("""
             QPushButton {
@@ -173,7 +172,7 @@ class HomePage(QWidget):
 
         content_layout.addWidget(hero_card)
 
-        # 2. Features Section with pastel cards
+
         features_label = QLabel("<h2 style='color: #5d5d5d; font-family: \"Montserrat SemiBold\";'>Key Features</h2>")
         features_label.setAlignment(Qt.AlignCenter)
         content_layout.addWidget(features_label)
@@ -202,7 +201,7 @@ class HomePage(QWidget):
             feature_layout.setContentsMargins(25, 25, 25, 25)
             feature_layout.setSpacing(20)
 
-            # Feature Icon with soft background
+            #Icon with soft background
             icon_container = QFrame()
             icon_container.setStyleSheet("""
                 QFrame {
@@ -223,12 +222,12 @@ class HomePage(QWidget):
 
             feature_layout.addWidget(icon_container, alignment=Qt.AlignCenter)
 
-            # Feature Title
+            # Features Title
             title_label = QLabel(f"<h3 style='color: #5d5d5d; font-family: \"Montserrat SemiBold\";'>{title}</h3>")
             title_label.setAlignment(Qt.AlignCenter)
             feature_layout.addWidget(title_label)
 
-            # Feature Description
+            # Features Description
             desc_label = QLabel(
                 f"<p style='color: #8e8e8e; font-size: 14px; font-family: \"Montserrat\"; line-height: 1.5;'>{desc}</p>")
             desc_label.setWordWrap(True)
@@ -239,7 +238,7 @@ class HomePage(QWidget):
 
         content_layout.addWidget(features_frame)
 
-        # 3. How It Works Section
+        #How It Works Section
         steps_card = ModernCard()
         steps_card.setStyleSheet("ModernCard { background: white; }")
         steps_layout = QVBoxLayout(steps_card)

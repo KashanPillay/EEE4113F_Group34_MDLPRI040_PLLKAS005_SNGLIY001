@@ -66,7 +66,7 @@ class DataPage(QWidget):
         self.load_data()
 
     def setup_ui(self):
-        # Update the stylesheet in the setup_ui method to include calendar styling
+
         self.setStyleSheet("""
             
             QLabel {
@@ -269,11 +269,11 @@ class DataPage(QWidget):
         self.end_date.setCalendarPopup(True)
         self.end_date.setDateTime(QDateTime.currentDateTime())
 
-        # Add time edit buttons to the calendar popup
+        #Time edit buttons on the calendar popup
         self.start_date.setCalendarWidget(self.create_calendar_with_time())
         self.end_date.setCalendarWidget(self.create_calendar_with_time())
 
-        # Add widgets to layout
+        # Additional Widgets
         controls_layout.addWidget(QLabel("Time range:"))
         controls_layout.addWidget(self.range_combo)
         controls_layout.addWidget(QLabel("From:"))
@@ -284,7 +284,7 @@ class DataPage(QWidget):
 
         content_layout.addWidget(self.graph_controls)
 
-        # Add Apply button
+        #Apply button
         self.apply_btn = QPushButton("Apply Range")
         self.apply_btn.setStyleSheet("""
             QPushButton {
@@ -371,13 +371,11 @@ class DataPage(QWidget):
         layout.addWidget(scroll)
 
     def create_calendar_with_time(self):
-        """Create a calendar widget with time editing capability"""
         calendar = QCalendarWidget()
         calendar.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
         return calendar
 
     def filter_data_by_range(self):
-        """Filter data based on selected time range"""
         if not self.all_data:
             return []
 
@@ -407,7 +405,6 @@ class DataPage(QWidget):
             return [d for d in self.all_data if d['datetime'] >= cutoff]
 
     def toggle_graph(self):
-        """Toggle graph visibility and controls"""
         if self.graphContainer.isVisible():
             self.graphContainer.hide()
             self.graph_controls.hide()
@@ -416,8 +413,8 @@ class DataPage(QWidget):
             # Force an update when showing the graph
             self.update_graph()
             self.graphContainer.show()
+
     def filter_data_by_range(self):
-        """Filter data based on selected time range"""
         if not self.all_data:
             return []
 
@@ -446,7 +443,6 @@ class DataPage(QWidget):
         return [d for d in self.all_data if d['datetime'] >= cutoff]
 
     def update_graph(self):
-        """Update graph when range selection changes"""
         if not self.graphContainer.isVisible():
             return
 
@@ -460,7 +456,6 @@ class DataPage(QWidget):
             self.plot_ror_graph()
 
     def validate_dates(self):
-        """Validate that start date is before end date"""
         start_dt = self.start_date.dateTime().toPyDateTime()
         end_dt = self.end_date.dateTime().toPyDateTime()
 
@@ -471,7 +466,6 @@ class DataPage(QWidget):
         return True
 
     def plot_ror_graph(self):
-        """Plot the RoR graph with current filters"""
         try:
             if not self.all_data:
                 QMessageBox.warning(self, "Warning", "No data available to plot")
@@ -524,7 +518,7 @@ class DataPage(QWidget):
                 spine.set_edgecolor('#e0e0e0')
             ax.tick_params(colors='#5d5d5d', labelsize=9)
 
-            # Add some padding around the plot
+            # Add padding around the plot
             self.graphContainer.figure.subplots_adjust(left=0.1, right=0.95,
                                                        bottom=0.15, top=0.9)
 
@@ -545,19 +539,20 @@ class DataPage(QWidget):
                 QMessageBox.warning(self, "Warning", "No data available from Google Sheet")
                 return
 
-            # Process data - parse dates and calculate y values
+            # Process data - calculate y values
             self.all_data = []
             for row in raw_data:
                 try:
-                    # Parse date and time
+                    # date and time
                     dt_str = f"{row.get('Date', '')} {row.get('Time', '')}"
                     dt = datetime.strptime(dt_str, "%d/%m/%Y %H:%M:%S")
 
-                    # Calculate y = 110 - 25(RoR)
-                    ratio1 = float(row.get('Ratio 1', 0))
-                    ratio2 = float(row.get('Ratio 2', 1))  # Avoid division by zero
+                    # Calculate y
+                    calibrate = float(row.get('DC Value', 2))
+                    ratio1 = (float(row.get('Ratio 1', 0)))-calibrate
+                    ratio2 = (float(row.get('Ratio 2', 1)))-calibrate  # Avoid division by zero
                     ror = ratio1 / ratio2 if ratio2 != 0 else 0
-                    y = 110 - 25 * ror
+                    y = (411.1276579*ror) - 209.2528943
 
                     # Store processed data
                     self.all_data.append({
@@ -588,12 +583,12 @@ class DataPage(QWidget):
             ratio1 = float(latest_data.get('Ratio 1', 0))
             ratio2 = float(latest_data.get('Ratio 2', 1))  # Avoid division by zero
             ror = ratio1 / ratio2 if ratio2 != 0 else 0
-            y_value = 110 - 25 * ror
+            y_value = (411.1276579*ror) - 209.2528943
             y_display = f"{y_value:.1f}"  # Format to 1 decimal place
 
             # Check if oxygen saturation is below 90
             if y_value < 90:
-                # Show warning message (only if not already shown for this low value)
+                # Show warning message
                 if not hasattr(self, '_low_spo2_warning_shown') or not self._low_spo2_warning_shown:
                     msg = QMessageBox()
                     msg.setIcon(QMessageBox.Warning)
