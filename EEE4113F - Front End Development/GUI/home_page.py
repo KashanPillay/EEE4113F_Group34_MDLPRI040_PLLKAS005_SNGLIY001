@@ -105,7 +105,7 @@ class HomePage(QWidget):
         hero_image_layout.setContentsMargins(10, 10, 10, 10)
 
         hero_image = QLabel()
-        hero_pixmap = QPixmap("assets/her_image.png").scaled(320, 320, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        hero_pixmap = QPixmap("assets/curious_image.png").scaled(220, 220, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         hero_image.setPixmap(hero_pixmap)
         hero_image.setAlignment(Qt.AlignCenter)
         hero_image_layout.addWidget(hero_image)

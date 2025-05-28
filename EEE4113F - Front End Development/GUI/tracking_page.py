@@ -38,7 +38,7 @@ class TrackingPage(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # Add pastel header
+        #pastel header
         header = PastelHeader()
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(40, 0, 40, 0)
@@ -101,7 +101,7 @@ class TrackingPage(QWidget):
                 if new_coords != self.coordinates:
                     self.coordinates = new_coords
                     self.map_update_signal.emit(new_coords)
-            time.sleep(5)
+            time.sleep(2)
 
     def reset_map_view(self):
         """Force the map back to tracked coordinates"""
@@ -110,7 +110,7 @@ class TrackingPage(QWidget):
 
     def update_map(self, coords):
         try:
-            # Store previous coordinates if they don't exist
+            # previous coordinates if they don't exist
             if not hasattr(self, 'previous_coords'):
                 self.previous_coords = None
 
@@ -122,7 +122,7 @@ class TrackingPage(QWidget):
                 self.previous_coords = new_coords
                 lat, lon = new_coords.split(",")
 
-                # Create the HTML with embedded iframe
+                #HTML with embedded iframe
                 html = f"""
                 <!DOCTYPE html>
                 <html>

@@ -61,9 +61,14 @@ class DataPage(QWidget):
     def __init__(self, navigate_to_home):
         super().__init__()
         self.navigate_to_home = navigate_to_home
-        self.all_data = []  # Store all loaded data for filtering
+        self.all_data = []  # Store all loaded data
         self.setup_ui()
         self.load_data()
+
+    def create_calendar_with_time(self):
+        calendar = QCalendarWidget()
+        calendar.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
+        return calendar
 
     def setup_ui(self):
 
@@ -206,7 +211,7 @@ class DataPage(QWidget):
             }
         """
 
-        self.heart_rate_label = QLabel("Heart Rate: -- bpm")
+        self.heart_rate_label = QLabel("Pulse: -- bpm")
         self.heart_rate_label.setStyleSheet(f"""
             {card_style}
             background: #ffebee;
@@ -229,86 +234,115 @@ class DataPage(QWidget):
 
         content_layout.addWidget(self.stats_widget)
 
-        # Graph controls container
-        self.graph_controls = ModernCard()
-        self.graph_controls.setStyleSheet("""
-            QLabel {
-                color: #333333;
-                font-weight: 500;
-            }
-            QComboBox, QDateEdit {
-                background: white;
-                color: #333333;
-            }
-        """)
-        self.graph_controls.setVisible(False)  # Initially hidden
-        controls_layout = QHBoxLayout(self.graph_controls)
-        controls_layout.setContentsMargins(15, 15, 15, 15)
+        #Graph Controls Container
+        self.spo2_controls = ModernCard()
+        self.spo2_controls.setStyleSheet("""
+                    QLabel {
+                        color: #333333;
+                        font-weight: 500;
+                    }
+                    QComboBox, QDateEdit {
+                        background: white;
+                        color: #333333;
+                    }
+                """)
+        self.spo2_controls.setVisible(False)
+        spo2_controls_layout = QHBoxLayout(self.spo2_controls)
+        spo2_controls_layout.setContentsMargins(15, 15, 15, 15)
 
-        # Date range selector
-        self.range_combo = QComboBox()
-        self.range_combo.addItems([
-            "Last 1 hour",
-            "Last 6 hours",
-            "Last 24 hours",
-            "Last 7 days",
-            "Custom range",
-            "All data"
-        ])
-        self.range_combo.setCurrentText("Last 24 hours")
-        self.range_combo.currentTextChanged.connect(self.update_graph)
+        self.pulse_controls = ModernCard()
+        self.pulse_controls.setStyleSheet(self.spo2_controls.styleSheet())
+        self.pulse_controls.setVisible(False)
+        pulse_controls_layout = QHBoxLayout(self.pulse_controls)
+        pulse_controls_layout.setContentsMargins(15, 15, 15, 15)
 
-        # Custom date range selectors
-        self.start_date = QDateTimeEdit()
-        self.start_date.setDisplayFormat("dd/MM/yyyy HH:mm")
-        self.start_date.setCalendarPopup(True)
-        self.start_date.setDateTime(QDateTime.currentDateTime().addSecs(-3600 * 24))  # Default to 24h ago
+        # Create controls for both graphs
+        def create_graph_controls():
+            range_combo = QComboBox()
+            range_combo.addItems([
+                "Last 1 hour",
+                "Last 6 hours",
+                "Last 24 hours",
+                "Last 7 days",
+                "Custom range",
+                "All data"
+            ])
+            range_combo.setCurrentText("Last 24 hours")
 
-        self.end_date = QDateTimeEdit()
-        self.end_date.setDisplayFormat("dd/MM/yyyy HH:mm")
-        self.end_date.setCalendarPopup(True)
-        self.end_date.setDateTime(QDateTime.currentDateTime())
+            start_date = QDateTimeEdit()
+            start_date.setDisplayFormat("dd/MM/yyyy HH:mm")
+            start_date.setCalendarPopup(True)
+            start_date.setDateTime(QDateTime.currentDateTime().addSecs(-3600 * 24))
 
-        #Time edit buttons on the calendar popup
-        self.start_date.setCalendarWidget(self.create_calendar_with_time())
-        self.end_date.setCalendarWidget(self.create_calendar_with_time())
+            end_date = QDateTimeEdit()
+            end_date.setDisplayFormat("dd/MM/yyyy HH:mm")
+            end_date.setCalendarPopup(True)
+            end_date.setDateTime(QDateTime.currentDateTime())
 
-        # Additional Widgets
-        controls_layout.addWidget(QLabel("Time range:"))
-        controls_layout.addWidget(self.range_combo)
-        controls_layout.addWidget(QLabel("From:"))
-        controls_layout.addWidget(self.start_date)
-        controls_layout.addWidget(QLabel("To:"))
-        controls_layout.addWidget(self.end_date)
-        controls_layout.addStretch()
+            start_date.setCalendarWidget(self.create_calendar_with_time())
+            end_date.setCalendarWidget(self.create_calendar_with_time())
 
-        content_layout.addWidget(self.graph_controls)
+            apply_btn = QPushButton("Apply Range")
+            apply_btn.setStyleSheet("""
+                        QPushButton {
+                            background: #81d4fa;
+                            color: #2d2d2d;
+                            border: none;
+                            border-radius: 6px;
+                            padding: 6px 12px;
+                            font-size: 12px;
+                            font-weight: 600;
+                            min-width: 80px;
+                        }
+                        QPushButton:hover {
+                            background: #4fc3f7;
+                        }
+                    """)
+            apply_btn.setShortcut("Return")
 
-        #Apply button
-        self.apply_btn = QPushButton("Apply Range")
-        self.apply_btn.setStyleSheet("""
-            QPushButton {
-                background: #81d4fa;
-                color: #2d2d2d;
-                border: none;
-                border-radius: 6px;
-                padding: 6px 12px;
-                font-size: 12px;
-                font-weight: 600;
-                min-width: 80px;
-            }
-            QPushButton:hover {
-                background: #4fc3f7;
-            }
-        """)
-        self.apply_btn.clicked.connect(self.update_graph)
-        controls_layout.addWidget(self.apply_btn)
-        self.apply_btn.setShortcut("Return")
+            return range_combo, start_date, end_date, apply_btn
 
-        # Graph container
-        self.graphContainer = GraphCard()
-        self.graphContainer.hide()
-        content_layout.addWidget(self.graphContainer)
+        # Spo2 controls
+        (self.spo2_range_combo, self.spo2_start_date,
+         self.spo2_end_date, self.spo2_apply_btn) = create_graph_controls()
+        self.spo2_range_combo.currentTextChanged.connect(lambda: self.update_graph('spo2'))
+        self.spo2_apply_btn.clicked.connect(lambda: self.update_graph('spo2'))
+
+        spo2_controls_layout.addWidget(QLabel("Time range:"))
+        spo2_controls_layout.addWidget(self.spo2_range_combo)
+        spo2_controls_layout.addWidget(QLabel("From:"))
+        spo2_controls_layout.addWidget(self.spo2_start_date)
+        spo2_controls_layout.addWidget(QLabel("To:"))
+        spo2_controls_layout.addWidget(self.spo2_end_date)
+        spo2_controls_layout.addStretch()
+        spo2_controls_layout.addWidget(self.spo2_apply_btn)
+
+        # Pulse controls
+        (self.pulse_range_combo, self.pulse_start_date,
+         self.pulse_end_date, self.pulse_apply_btn) = create_graph_controls()
+        self.pulse_range_combo.currentTextChanged.connect(lambda: self.update_graph('pulse'))
+        self.pulse_apply_btn.clicked.connect(lambda: self.update_graph('pulse'))
+
+        pulse_controls_layout.addWidget(QLabel("Time range:"))
+        pulse_controls_layout.addWidget(self.pulse_range_combo)
+        pulse_controls_layout.addWidget(QLabel("From:"))
+        pulse_controls_layout.addWidget(self.pulse_start_date)
+        pulse_controls_layout.addWidget(QLabel("To:"))
+        pulse_controls_layout.addWidget(self.pulse_end_date)
+        pulse_controls_layout.addStretch()
+        pulse_controls_layout.addWidget(self.pulse_apply_btn)
+
+        content_layout.addWidget(self.spo2_controls)
+        content_layout.addWidget(self.pulse_controls)
+
+        # Graph containers
+        self.spo2_graph = GraphCard()
+        self.spo2_graph.hide()
+        content_layout.addWidget(self.spo2_graph)
+
+        self.pulse_graph = GraphCard()
+        self.pulse_graph.hide()
+        content_layout.addWidget(self.pulse_graph)
 
         # Button container
         btn_container = QWidget()
@@ -319,75 +353,102 @@ class DataPage(QWidget):
         # Refresh Button
         refresh_btn = QPushButton("Refresh Data")
         refresh_btn.setStyleSheet("""
-            QPushButton {
-                background: #81d4fa;
-                color: #2d2d2d;
-                border: none;
-                border-radius: 12px;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-weight: 600;
-                min-width: 180px;
-            }
-            QPushButton:hover {
-                background: #4fc3f7;
-            }
-            QPushButton:pressed {
-                background: #29b6f6;
-            }
-        """)
+                    QPushButton {
+                        background: #81d4fa;
+                        color: #2d2d2d;
+                        border: none;
+                        border-radius: 12px;
+                        padding: 12px 24px;
+                        font-size: 14px;
+                        font-weight: 600;
+                        min-width: 180px;
+                    }
+                    QPushButton:hover {
+                        background: #4fc3f7;
+                    }
+                    QPushButton:pressed {
+                        background: #29b6f6;
+                    }
+                """)
         refresh_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
         refresh_btn.clicked.connect(self.load_data)
 
-        # Graph Button
-        graph_btn = QPushButton("Show Oxygen Saturation Graph")
-        graph_btn.setStyleSheet("""
-            QPushButton {
-                background: #ce93d8;
-                color: #2d2d2d;
-                border: none;
-                border-radius: 12px;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-weight: 600;
-                min-width: 180px;
-            }
-            QPushButton:hover {
-                background: #ba68c8;
-            }
-            QPushButton:pressed {
-                background: #ab47bc;
-            }
-        """)
-        graph_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
-        graph_btn.clicked.connect(self.toggle_graph)
+        # Graph Buttons
+        spo2_graph_btn = QPushButton("Show Oxygen Saturation Graph")
+        spo2_graph_btn.setStyleSheet("""
+                    QPushButton {
+                        background: #ce93d8;
+                        color: #2d2d2d;
+                        border: none;
+                        border-radius: 12px;
+                        padding: 12px 24px;
+                        font-size: 14px;
+                        font-weight: 600;
+                        min-width: 180px;
+                    }
+                    QPushButton:hover {
+                        background: #ba68c8;
+                    }
+                    QPushButton:pressed {
+                        background: #ab47bc;
+                    }
+                """)
+        spo2_graph_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        spo2_graph_btn.clicked.connect(lambda: self.toggle_graph('spo2'))
+
+        pulse_graph_btn = QPushButton("Show Pulse Graph")
+        pulse_graph_btn.setStyleSheet("""
+                    QPushButton {
+                        background: #80cbc4;
+                        color: #2d2d2d;
+                        border: none;
+                        border-radius: 12px;
+                        padding: 12px 24px;
+                        font-size: 14px;
+                        font-weight: 600;
+                        min-width: 180px;
+                    }
+                    QPushButton:hover {
+                        background: #4db6ac;
+                    }
+                    QPushButton:pressed {
+                        background: #26a69a;
+                    }
+                """)
+        pulse_graph_btn.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        pulse_graph_btn.clicked.connect(lambda: self.toggle_graph('pulse'))
 
         btn_layout.addWidget(refresh_btn)
-        btn_layout.addWidget(graph_btn)
+        btn_layout.addWidget(spo2_graph_btn)
+        btn_layout.addWidget(pulse_graph_btn)
         btn_layout.addStretch()
         content_layout.addWidget(btn_container)
 
         scroll.setWidget(content_widget)
         layout.addWidget(scroll)
 
-    def create_calendar_with_time(self):
-        calendar = QCalendarWidget()
-        calendar.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
-        return calendar
-
-    def filter_data_by_range(self):
-        if not self.all_data:
+    def filter_data_by_range(self, data_type, all_data):
+        if not all_data:
             return []
 
-        range_text = self.range_combo.currentText()
+        if data_type == 'spo2':
+            range_combo = self.spo2_range_combo
+            start_date = self.spo2_start_date
+            end_date = self.spo2_end_date
+        else:  # pulse
+            range_combo = self.pulse_range_combo
+            start_date = self.pulse_start_date
+            end_date = self.pulse_end_date
+
+        range_text = range_combo.currentText()
 
         if range_text == "All data":
-            return self.all_data
+            return all_data
 
         elif range_text == "Custom range":
-            start_dt = self.start_date.dateTime().toPyDateTime()
-            end_dt = self.end_date.dateTime().toPyDateTime()
-            return [d for d in self.all_data if start_dt <= d['datetime'] <= end_dt]
+            start_dt = start_date.dateTime().toPyDateTime()
+            end_dt = end_date.dateTime().toPyDateTime()
+            return [d for d in all_data if start_dt <= d['datetime'] <= end_dt]
 
         else:
             now = datetime.now()
@@ -400,64 +461,51 @@ class DataPage(QWidget):
             elif range_text == "Last 7 days":
                 cutoff = now - timedelta(days=7)
             else:
-                return self.all_data
+                return all_data
 
-            return [d for d in self.all_data if d['datetime'] >= cutoff]
+            return [d for d in all_data if d['datetime'] >= cutoff]
 
-    def toggle_graph(self):
-        if self.graphContainer.isVisible():
-            self.graphContainer.hide()
-            self.graph_controls.hide()
+    def toggle_graph(self, graph_type):
+        if graph_type == 'spo2':
+            graph = self.spo2_graph
+            controls = self.spo2_controls
+        else:  # pulse
+            graph = self.pulse_graph
+            controls = self.pulse_controls
+
+        if graph.isVisible():
+            graph.hide()
+            controls.hide()
         else:
-            self.graph_controls.show()
-            # Force an update when showing the graph
-            self.update_graph()
-            self.graphContainer.show()
+            controls.show()
+            self.update_graph(graph_type)
+            graph.show()
 
-    def filter_data_by_range(self):
-        if not self.all_data:
-            return []
+    def update_graph(self, graph_type):
+        if graph_type == 'spo2':
+            graph = self.spo2_graph
+            show_custom = self.spo2_range_combo.currentText() == "Custom range"
+            self.spo2_start_date.setVisible(show_custom)
+            self.spo2_end_date.setVisible(show_custom)
 
-        range_text = self.range_combo.currentText()
-        now = datetime.now()
+            if not show_custom or (show_custom and self.validate_dates('spo2')):
+                self.plot_graph(graph_type)
+        else:  # pulse
+            graph = self.pulse_graph
+            show_custom = self.pulse_range_combo.currentText() == "Custom range"
+            self.pulse_start_date.setVisible(show_custom)
+            self.pulse_end_date.setVisible(show_custom)
 
-        if range_text == "All data":
-            return self.all_data
+            if not show_custom or (show_custom and self.validate_dates('pulse')):
+                self.plot_graph(graph_type)
 
-        elif range_text == "Custom range":
-            start_dt = self.start_date.dateTime().toPyDateTime()
-            end_dt = self.end_date.dateTime().toPyDateTime()
-            return [d for d in self.all_data if start_dt <= d['datetime'] <= end_dt]
-
-        elif range_text == "Last 1 hour":
-            cutoff = now - timedelta(hours=1)
-        elif range_text == "Last 6 hours":
-            cutoff = now - timedelta(hours=6)
-        elif range_text == "Last 24 hours":
-            cutoff = now - timedelta(hours=24)
-        elif range_text == "Last 7 days":
-            cutoff = now - timedelta(days=7)
-        else:
-            return self.all_data
-
-        return [d for d in self.all_data if d['datetime'] >= cutoff]
-
-    def update_graph(self):
-        if not self.graphContainer.isVisible():
-            return
-
-        # Show/hide custom date range controls
-        show_custom = self.range_combo.currentText() == "Custom range"
-        self.start_date.setVisible(show_custom)
-        self.end_date.setVisible(show_custom)
-
-        # Only plot if not custom range or if custom range with valid dates
-        if not show_custom or (show_custom and self.validate_dates()):
-            self.plot_ror_graph()
-
-    def validate_dates(self):
-        start_dt = self.start_date.dateTime().toPyDateTime()
-        end_dt = self.end_date.dateTime().toPyDateTime()
+    def validate_dates(self, graph_type):
+        if graph_type == 'spo2':
+            start_dt = self.spo2_start_date.dateTime().toPyDateTime()
+            end_dt = self.spo2_end_date.dateTime().toPyDateTime()
+        else:  # pulse
+            start_dt = self.pulse_start_date.dateTime().toPyDateTime()
+            end_dt = self.pulse_end_date.dateTime().toPyDateTime()
 
         if start_dt > end_dt:
             QMessageBox.warning(self, "Invalid Range",
@@ -465,42 +513,52 @@ class DataPage(QWidget):
             return False
         return True
 
-    def plot_ror_graph(self):
+    def plot_graph(self, graph_type):
         try:
             if not self.all_data:
                 QMessageBox.warning(self, "Warning", "No data available to plot")
                 return
 
             # Get filtered data
-            filtered_data = self.filter_data_by_range()
+            if graph_type == 'spo2':
+                filtered_data = self.filter_data_by_range('spo2', self.all_data)
+                y_values = [d['spo2_value'] for d in filtered_data]
+                y_label = 'Oxygen Saturation (%)'
+                color = '#ce93d8'
+                title = 'Oxygen Saturation Over Time'
+            else:  # pulse
+                filtered_data = self.filter_data_by_range('pulse', self.all_data)
+                y_values = [d['pulse_value'] for d in filtered_data]
+                y_label = 'Pulse (bpm)'
+                color = '#80cbc4'
+                title = ''
+
             if not filtered_data:
                 QMessageBox.warning(self, "Warning", "No data in selected time range")
                 return
 
-            # Prepare data for plotting
             dates = [d['datetime'] for d in filtered_data]
-            y_values = [d['y_value'] for d in filtered_data]
+
+            # Get the appropriate graph container
+            graph = self.spo2_graph if graph_type == 'spo2' else self.pulse_graph
 
             # Clear previous plot
-            self.graphContainer.figure.clear()
-            ax = self.graphContainer.figure.add_subplot(111)
+            graph.figure.clear()
+            ax = graph.figure.add_subplot(111)
 
-            # Plot data with improved styling
+            # Plot data
             ax.plot(dates, y_values, marker='o', linestyle='-',
-                    color='#81d4fa', markersize=6, linewidth=1.5,
+                    color=color, markersize=6, linewidth=1.5,
                     markerfacecolor='white', markeredgewidth=1.5)
 
-            # Format plot with better readability
-            ax.set_title('',
-                         color='#5d5d5d', pad=20, fontsize=12)
+            # Format plot
+            ax.set_title(title, color='#5d5d5d', pad=20, fontsize=12)
             ax.set_xlabel('Date & Time', color='#5d5d5d', fontsize=10)
-            ax.set_ylabel('Oxygen Saturation', color='#5d5d5d', fontsize=10)
+            ax.set_ylabel(y_label, color='#5d5d5d', fontsize=10)
 
-            # Add grid and background
             ax.grid(True, linestyle=':', alpha=0.5)
             ax.set_facecolor('#fafafa')
 
-            # Format x-axis dates based on time range
             if len(dates) > 1:
                 time_span = dates[-1] - dates[0]
                 if time_span > timedelta(days=2):
@@ -508,56 +566,58 @@ class DataPage(QWidget):
                 else:
                     ax.xaxis.set_major_formatter(DateFormatter('%H:%M\n%d/%m'))
 
-            # Auto-scale and adjust layout
             ax.relim()
             ax.autoscale_view()
-            self.graphContainer.figure.tight_layout()
+            graph.figure.tight_layout()
 
-            # Set colors
             for spine in ax.spines.values():
                 spine.set_edgecolor('#e0e0e0')
             ax.tick_params(colors='#5d5d5d', labelsize=9)
 
-            # Add padding around the plot
-            self.graphContainer.figure.subplots_adjust(left=0.1, right=0.95,
-                                                       bottom=0.15, top=0.9)
+            graph.figure.subplots_adjust(left=0.1, right=0.95,
+                                         bottom=0.15, top=0.9)
 
-            # Redraw canvas
-            self.graphContainer.canvas.draw()
+            graph.canvas.draw()
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to plot graph: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to plot {graph_type} graph: {str(e)}")
 
     def load_data(self):
         try:
-            # Hide graph when refreshing data
-            self.graphContainer.hide()
-            self.graph_controls.hide()
+            # Hide graphs when refreshing data
+            self.spo2_graph.hide()
+            self.pulse_graph.hide()
+            self.spo2_controls.hide()
+            self.pulse_controls.hide()
 
             raw_data = sheets_retrieve.get_sheet_data()
             if not raw_data:
                 QMessageBox.warning(self, "Warning", "No data available from Google Sheet")
                 return
 
-            # Process data - calculate y values
+            # Process data
             self.all_data = []
             for row in raw_data:
                 try:
-                    # date and time
+                    # Date and time
                     dt_str = f"{row.get('Date', '')} {row.get('Time', '')}"
                     dt = datetime.strptime(dt_str, "%d/%m/%Y %H:%M:%S")
 
-                    # Calculate y
+                    # Calculate SpO2
                     calibrate = float(row.get('DC Value', 2))
-                    ratio1 = (float(row.get('Ratio 1', 0)))-calibrate
-                    ratio2 = (float(row.get('Ratio 2', 1)))-calibrate  # Avoid division by zero
+                    ratio1 = (float(row.get('Ratio 1', 0))) - calibrate
+                    ratio2 = (float(row.get('Ratio 2', 1))) - calibrate
                     ror = ratio1 / ratio2 if ratio2 != 0 else 0
-                    y = (411.1276579*ror) - 209.2528943
+                    spo2 = (114.9791294 * ror) + 26.625233632
+
+                    # Get Pulse
+                    pulse = float(row.get('Pulse', 0))
 
                     # Store processed data
                     self.all_data.append({
                         'datetime': dt,
-                        'y_value': y,
+                        'spo2_value': spo2,
+                        'pulse_value': pulse,
                         'original_data': row
                     })
                 except (ValueError, KeyError) as e:
@@ -569,93 +629,56 @@ class DataPage(QWidget):
                 return
 
             # Update summary with latest data
-            self.update_summary(self.all_data[-1]['original_data'])
+            self.update_summary(self.all_data[-1])
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load data from Google Sheet: {str(e)}")
 
     def update_summary(self, latest_data):
-        hr = latest_data.get('Heart Rate', '--')
-        spo2 = latest_data.get('SpO2', '')
+        pulse = latest_data['original_data'].get('Pulse', '--')
+        spo2 = latest_data['original_data'].get('SpO2', '--')
+        calculated_spo2 = f"{latest_data['spo2_value']:.1f}" if 'spo2_value' in latest_data else "--"
 
-        # Calculate y-value from RoR
+        # Update heart rate label
+        self.heart_rate_label.setText(f"Pulse: <b>{pulse}</b> bpm")
+
+        # Update SpO2 label with warning for low oxygen
         try:
-            ratio1 = float(latest_data.get('Ratio 1', 0))
-            ratio2 = float(latest_data.get('Ratio 2', 1))  # Avoid division by zero
-            ror = ratio1 / ratio2 if ratio2 != 0 else 0
-            y_value = (411.1276579*ror) - 209.2528943
-            y_display = f"{y_value:.1f}"  # Format to 1 decimal place
-
-            # Check if oxygen saturation is below 90
-            if y_value < 90:
-                # Show warning message
+            if float(calculated_spo2) < 90:
+                self.spo2_label.setStyleSheet("""
+                            QLabel {
+                                font-size: 16px;
+                                font-weight: 600;
+                                padding: 20px;
+                                border-radius: 12px;
+                                color: white;
+                                min-width: 200px;
+                                background: #f44336;
+                            }
+                        """)
                 if not hasattr(self, '_low_spo2_warning_shown') or not self._low_spo2_warning_shown:
-                    msg = QMessageBox()
-                    msg.setIcon(QMessageBox.Warning)
-                    msg.setText("Warning: Oxygen Saturation is Low!")
-                    msg.setInformativeText(f"Oxygen saturation is {y_display}% (below 90%). Please check the patient.")
-                    msg.setWindowTitle("Low Oxygen Warning")
-                    msg.setStandardButtons(QMessageBox.Ok)
-                    msg.setStyleSheet("""
-                        QMessageBox {
-                            background-color: #333333;
-                        }
-                        QMessageBox QLabel {
-                            color: #ffeb3b;
-                            font-size: 14px;
-                        }
-                        QMessageBox QPushButton {
-                            background-color: #81d4fa;
-                            color: #2d2d2d;
-                            border-radius: 4px;
-                            padding: 5px 10px;
-                        }
-                    """)
-                    msg.exec_()
+                    QMessageBox.warning(
+                        self,
+                        "Low Oxygen Warning",
+                        f"Oxygen saturation is {calculated_spo2}% (below 90%). Please check the patient."
+                    )
                     self._low_spo2_warning_shown = True
-
-                # Change SpO2 label to red warning style
-                self.spo2_label.setStyleSheet(f"""
-                    QLabel {{
-                        font-size: 16px;
-                        font-weight: 600;
-                        padding: 20px;
-                        border-radius: 12px;
-                        color: white;
-                        min-width: 200px;
-                        background: #f44336;
-                    }}
-                """)
             else:
-                # Reset to normal style if above 90
-                self.spo2_label.setStyleSheet(f"""
-                    QLabel {{
-                        font-size: 16px;
-                        font-weight: 600;
-                        padding: 20px;
-                        border-radius: 12px;
-                        color: #5d5d5d;
-                        min-width: 200px;
-                        background: #e8f5e9;
-                    }}
-                """)
-                self._low_spo2_warning_shown = False
-
-        except (ValueError, TypeError):
-            y_display = "--"
-            # Reset to normal style if there's an error
-            self.spo2_label.setStyleSheet(f"""
-                QLabel {{
-                    font-size: 16px;
-                    font-weight: 600;
-                    padding: 20px;
-                    border-radius: 12px;
-                    color: #5d5d5d;
-                    min-width: 200px;
-                    background: #e8f5e9;
-                }}
+                self.spo2_label.setStyleSheet("""
+                QLabel
+                {
+                font-size: 16px;
+                font-weight: 600;
+                padding: 20px;
+                border-radius: 12px;
+                color:  #5d5d5d;
+                min-width: 200px;
+                background:  # e8f5e9;
+                }
             """)
+                self._low_spo2_warning_shown = False
+        except ValueError:
+            pass
 
-        self.heart_rate_label.setText(f"Heart Rate: <b>{hr}</b> bpm")
-        self.spo2_label.setText(f"SpO2: <b>{spo2}</b> <b>{y_display}</b>%")
+        self.spo2_label.setText(f"SpO2:  <b>{calculated_spo2}</b>%")
         self.last_update_label.setText(f"Last updated: <b>{time.strftime('%H:%M:%S')}</b>")

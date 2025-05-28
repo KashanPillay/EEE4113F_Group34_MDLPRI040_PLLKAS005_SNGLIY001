@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.data_page = DataPage(self.show_home_page)
         self.tracking_page = TrackingPage(self.show_home_page)
 
-        # Add pages to stacked widget
+        # pages on stacked widget
         self.stackedWidget.addWidget(self.home_page)
         self.stackedWidget.addWidget(self.data_page)
         self.stackedWidget.addWidget(self.tracking_page)
